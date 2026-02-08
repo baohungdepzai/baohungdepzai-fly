@@ -1,30 +1,28 @@
--- baohungdepzai Fly Mobile | Speed max 200 | Hide / Show UI
+-- baohungdepzai Fly Script (DELTA FIX)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UIS = game:GetService("UserInputService")
+local player = Players.LocalPlayer
 
-local plr = Players.LocalPlayer
-local char = plr.Character or plr.CharacterAdded:Wait()
+repeat task.wait() until player.Character
+local char = player.Character
 local hrp = char:WaitForChild("HumanoidRootPart")
 local hum = char:WaitForChild("Humanoid")
 
 local flying = false
-local speed = 50
-local maxSpeed = 200
-
+local speed = 100
 local bv, bg
 
--- UI
+-- GUI (Delta-safe)
 local gui = Instance.new("ScreenGui")
 gui.Name = "baohungdepzai"
-gui.Parent = game.CoreGui
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.fromOffset(220,150)
-frame.Position = UDim2.fromScale(0.05,0.4)
-frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
-frame.BorderSizePixel = 0
+frame.Size = UDim2.new(0,200,0,120)
+frame.Position = UDim2.new(0,20,0.4,0)
+frame.BackgroundColor3 = Color3.fromRGB(40,40,40)
 frame.Active = true
 frame.Draggable = true
 
@@ -34,73 +32,55 @@ title.Text = "baohungdepzai Fly"
 title.TextColor3 = Color3.new(1,1,1)
 title.BackgroundTransparency = 1
 
-local flyBtn = Instance.new("TextButton", frame)
-flyBtn.Position = UDim2.fromOffset(10,40)
-flyBtn.Size = UDim2.fromOffset(200,30)
-flyBtn.Text = "FLY : OFF"
+local btn = Instance.new("TextButton", frame)
+btn.Size = UDim2.new(1,-20,0,30)
+btn.Position = UDim2.new(0,10,0,40)
+btn.Text = "BẬT / TẮT BAY"
 
-local speedBox = Instance.new("TextBox", frame)
-speedBox.Position = UDim2.fromOffset(10,80)
-speedBox.Size = UDim2.fromOffset(200,30)
-speedBox.Text = "Speed (1-200)"
-speedBox.ClearTextOnFocus = true
+local hide = Instance.new("TextButton", frame)
+hide.Size = UDim2.new(1,-20,0,30)
+hide.Position = UDim2.new(0,10,0,80)
+hide.Text = "ẨN"
 
-local hideBtn = Instance.new("TextButton", frame)
-hideBtn.Position = UDim2.fromOffset(10,120)
-hideBtn.Size = UDim2.fromOffset(200,20)
-hideBtn.Text = "Ẩn / Hiện UI"
+local show = Instance.new("TextButton", gui)
+show.Size = UDim2.new(0,80,0,30)
+show.Position = UDim2.new(0,10,0.85,0)
+show.Text = "HIỆN"
+show.Visible = false
 
--- Fly functions
 local function startFly()
 	bv = Instance.new("BodyVelocity", hrp)
 	bv.MaxForce = Vector3.new(1e9,1e9,1e9)
-	bv.Velocity = Vector3.zero
-
 	bg = Instance.new("BodyGyro", hrp)
 	bg.MaxTorque = Vector3.new(1e9,1e9,1e9)
-	bg.P = 9e4
-	bg.CFrame = hrp.CFrame
-
 	hum.PlatformStand = true
-
-	RunService:BindToRenderStep("Fly",0,function()
-		bg.CFrame = workspace.CurrentCamera.CFrame
-		bv.Velocity = workspace.CurrentCamera.CFrame.LookVector * speed
-	end)
 end
 
 local function stopFly()
-	RunService:UnbindFromRenderStep("Fly")
 	if bv then bv:Destroy() end
 	if bg then bg:Destroy() end
 	hum.PlatformStand = false
 end
 
-flyBtn.MouseButton1Click:Connect(function()
+btn.MouseButton1Click:Connect(function()
 	flying = not flying
-	if flying then
-		flyBtn.Text = "FLY : ON"
-		startFly()
-	else
-		flyBtn.Text = "FLY : OFF"
-		stopFly()
+	if flying then startFly() else stopFly() end
+end)
+
+hide.MouseButton1Click:Connect(function()
+	frame.Visible = false
+	show.Visible = true
+end)
+
+show.MouseButton1Click:Connect(function()
+	frame.Visible = true
+	show.Visible = false
+end)
+
+RunService.RenderStepped:Connect(function()
+	if flying and bv and bg then
+		local cam = workspace.CurrentCamera
+		bg.CFrame = cam.CFrame
+		bv.Velocity = cam.CFrame.LookVector * speed
 	end
 end)
-
-speedBox.FocusLost:Connect(function()
-	local v = tonumber(speedBox.Text)
-	if v then
-		speed = math.clamp(v,1,maxSpeed)
-	end
-	speedBox.Text = "Speed : "..speed
-end)
-
-hideBtn.MouseButton1Click:Connect(function()
-	frame.Visible = not frame.Visible
-end)
-
--- Mobile: double tap to show / hide
-local tap = 0
-UIS.TouchTap:Connect(function()
-	tap += 1
-	task.delay(0.4
